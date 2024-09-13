@@ -1,0 +1,51 @@
+
+import requests
+import json
+from requests.auth import HTTPBasicAuth
+
+# Set your variables
+confluence_base_url = "https://aryamangautam100.atlassian.net/wiki/rest/api/content"
+page_id = "65916"  # ID of the page you want to edit
+api_token = "ATATT3xFfGF0D4mnN1hSrcuqbZ-ZumqLOombNU7CWjGmhyzy-1xMUtRtcq073pB66_eXoQ68LrPgyF7LDGCUHq9rdtvqw3OZfEttAJj1WZY1OGfPJW-x9uVyVwHXlun-1VTEynXsvWqLY4svZaNwLpsYj2q6zNNTxu33NK2CIvnP4HKC1wzrz0Q=8ED49388"  # Replace with your API token
+email = "aryamangautam100@outlook.com"  # Replace with your Atlassian email
+new_content = "<h1>Updated Page Title</h1><p>This is the updated content of the page.</p>"
+
+# Fetch the current version of the page (important to increment the version number)
+response = requests.get(
+    f"{confluence_base_url}/{page_id}",
+    auth=HTTPBasicAuth(email, api_token)
+)
+
+if response.status_code == 200:
+    page_data = response.json()
+    current_version = page_data['version']['number']
+
+    # Prepare the updated data
+    data = {
+        "version": {
+            "number": current_version + 1  # Increment the version number
+        },
+        "title": page_data['title'],  # Keep the existing title
+        "type": "page",
+        "body": {
+            "storage": {
+                "value": new_content,
+                "representation": "storage"  # Format of the content
+            }
+        }
+    }
+
+    # Make the PUT request to update the page
+    update_response = requests.put(
+        f"{confluence_base_url}/{page_id}",
+        data=json.dumps(data),
+        headers={"Content-Type": "application/json"},
+        auth=HTTPBasicAuth(email, api_token)
+    )
+
+    if update_response.status_code == 200:
+        print("Page updated successfully!")
+    else:
+        print(f"Failed to update the page. Status code: {update_response.status_code}")
+else:
+    print(f"Failed to fetch the page. Status code: {response.status_code}")
